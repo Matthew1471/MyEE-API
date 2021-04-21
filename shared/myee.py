@@ -12,7 +12,7 @@ class MyEE:
  myEEHost = 'https://myaccount.ee.co.uk'
 
  # This prevents the requests module from creating its own user-agent (and ask to not be included in analytics).
- stealthyHeaders = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0', 'DNT':'1'}
+ stealthyHeaders = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0', 'DNT':'1'}
 
  def __init__(self, email, password):
   # We need to be assigned CSRF and requestID tokens *before* we can login.
