@@ -119,8 +119,8 @@ class MyEE:
   # We use BeautifulSoup to parse the returned HTML.
   soup = BeautifulSoup(response.text, 'html.parser')
 
-  # Get a reference to the data gifting form.
-  giftDataForm = soup.find(id='giftDataForm')
+  # Get a reference to the data gifting form DIV (there is no ID to search for).
+  giftDataForm = soup.find('form', {'action': '/app/family-gifting?fa=giftData'})
 
   # Get the hidden HTML form CSRF Input value.
   return giftDataForm.find(id='csrf').attrs['value']
@@ -133,14 +133,13 @@ class MyEE:
   # Send the request (with the CSRF token).
   return requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=subscriptionDataAllowance', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, data={'csrf':csrf}, allow_redirects=False).json()
 
- def familyGifting(self, giftingAmountInMB, donorMsisdn, recipeintMsisdn, csrf):
+ def familyGifting(self, dataTransferMB, supplierCtn, consumerCtn, csrf):
   # Send the request (with the CSRF token).
   payload = {
-             'fa':'giftData',
-             'giftingAmountInMB':giftingAmountInMB,
-             'donorMsisdn': donorMsisdn,
-             'recipientMsisdn':recipeintMsisdn,
+             'supplierCtn':supplierCtn,
+             'consumerCtn':consumerCtn,
+             'dataTransferMB':dataTransferMB,
              'csrf':csrf
              }
-  response = requests.post(url=MyEE.myEEHost + '/app/family-gifting', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, data=payload, allow_redirects=True)
+  response = requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=giftData', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, data=payload, allow_redirects=True)
   return (response.status_code == 200 and ('Data Gifting successful' in response.text))
