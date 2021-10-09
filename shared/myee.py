@@ -91,14 +91,35 @@ class MyEE:
   # https://myaccount.ee.co.uk/app
   response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={'EEIDWEBSESSIONID':self.EEIDWEBSESSIONID}, allow_redirects=False)
 
+  # There's a new queue system (looks like QueueIT - https://queue-it.com/developers/how-queue-it-works/)? (https://queue.ee.co.uk/?c=eeuk&e=myee2020&ver=v3-java-3.6.1&cver=79&man=MyeeKnownUser&t=https%3A%2F%2Fmyaccount.ee.co.uk%2Fapp%2F)
+  response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, allow_redirects=False)
+
+  # We should get granted a queue token from (https://myaccount.ee.co.uk/app/?queueittoken=e_myee2020~..)
+  response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, allow_redirects=False)
+
+  # We need to enumerate the cookies to find the one we are interested in (as the cookie key can change).
+  for cookie in response.cookies:
+
+   # Only interested in the QueueIT token.
+   if (cookie.name.startswith('QueueITAccepted-')):
+       self.QueueITToken = cookie
+       break
+
+  # If there is no QueueIT token by this point then we cannot continue.
+  if not self.QueueITToken:
+   raise ValueError('Failed to login to My EE (Failed to get token from QueueIT)')
+
+  # We request https://myaccount.ee.co.uk/app/ but this time with queue approval.
+  response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False)
+
   # The MYACCOUNTSESSIONID has been set.
   self.MYACCOUNTSESSIONID = response.cookies['MYACCOUNTSESSIONID']
 
   # https://api.ee.co.uk/v1/identity/authorize?response_type=code&scope=openid&client_id=xx&redirect_uri=https://myaccount.ee.co.uk/app/auth&acr_values=L2&state=xx&nonce=xx
-  response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={'OPBS':self.OPBS, 'SID':self.SID},allow_redirects=False)
+  response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={'OPBS':self.OPBS, 'SID':self.SID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False)
 
   # https://myaccount.ee.co.uk/app/auth?code=xx&state=xx&session_state=xx
-  response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, allow_redirects=False)
+  response = requests.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False)
 
   # This is the only cookie required for the My EE session.
   if 'MYACCOUNTSESSIONID' in response.cookies:
@@ -114,7 +135,7 @@ class MyEE:
 
  def familyGiftingAuth(self):
   # Need to get the CSRF token.
-  response = requests.get(url=MyEE.myEEHost + '/app/family-gifting', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, allow_redirects=False)
+  response = requests.get(url=MyEE.myEEHost + '/app/family-gifting', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False)
 
   # We use BeautifulSoup to parse the returned HTML.
   soup = BeautifulSoup(response.text, 'html.parser')
@@ -127,11 +148,11 @@ class MyEE:
 
  def familyGiftingHistory(self, csrf):
   # Send the request (with the CSRF token).
-  return requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=showMoreGiftingHistory', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, data={'csrf':csrf}, allow_redirects=False).json()
+  return requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=showMoreGiftingHistory', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, data={'csrf':csrf}, allow_redirects=False).json()
 
  def familyGiftingSubscriptionDataAllowance(self, csrf):
   # Send the request (with the CSRF token).
-  return requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=subscriptionDataAllowance', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, data={'csrf':csrf}, allow_redirects=False).json()
+  return requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=subscriptionDataAllowance', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, data={'csrf':csrf}, allow_redirects=False).json()
 
  def familyGifting(self, dataTransferMB, supplierCtn, consumerCtn, csrf):
   # Send the request (with the CSRF token).
@@ -141,5 +162,5 @@ class MyEE:
              'dataTransferMB':dataTransferMB,
              'csrf':csrf
              }
-  response = requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=giftData', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, data=payload, allow_redirects=True)
+  response = requests.post(url=MyEE.myEEHost + '/app/family-gifting?fa=giftData', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, data=payload, allow_redirects=True)
   return (response.status_code == 200 and ('Data Gifting successful' in response.text))
