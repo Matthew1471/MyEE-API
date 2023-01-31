@@ -12,7 +12,7 @@ import json
 
 # Load credentials.
 with open('credentials.json', 'r') as in_file:
- credentials = json.load(in_file)
+    credentials = json.load(in_file)
 
 # Create a My EE object.
 print('* Logging into My EE.')
@@ -28,24 +28,24 @@ allowances = myEE.familyGiftingSubscriptionDataAllowance(csrf)
 
 # Work out how much data can be gifted.
 for subscription in allowances:
- # We are only interested in the donor MSISDN.
- if subscription['msisdn'] != credentials['MyEE_DonorMSISDN']: continue
+    # We are only interested in the donor MSISDN.
+    if subscription['msisdn'] != credentials['MyEE_DonorMSISDN']: continue
 
- # Print out the limits.
- if subscription['isUnlimited']:
-  print('  - Can gift up to ' + subscription['amountRemaining']  + ' ' + subscription['amountRemainingUnits'] + ' out of the 100/120 GB gifting allowance after ' + subscription['amountUsed'] + ' ' + subscription['amountUsedUnits'] + ' data usage.')
- else:
-  print('  - Can gift up to ' + subscription['amountRemaining'] + ' ' + subscription['amountRemainingUnits'] + ' out of ' + subscription['totalVolume'] + ' ' + subscription['totalVolumeUnits'] + '.')
+    # Print out the limits.
+    if subscription['isUnlimited']:
+        print('  - Can gift up to ' + subscription['amountRemaining']  + ' ' + subscription['amountRemainingUnits'] + ' out of the 100/120 GB gifting allowance after ' + subscription['amountUsed'] + ' ' + subscription['amountUsedUnits'] + ' data usage.')
+    else:
+        print('  - Can gift up to ' + subscription['amountRemaining'] + ' ' + subscription['amountRemainingUnits'] + ' out of ' + subscription['totalVolume'] + ' ' + subscription['totalVolumeUnits'] + '.')
 
- # Work out the maximum amount allowed to data gift.
- giftingDisplayString = ''
- giftingAmountInMB = 0
+    # Work out the maximum amount allowed to data gift.
+    giftingDisplayString = ''
+    giftingAmountInMB = 0
 
- for allowedDataTransferAmount in subscription['allowedDataTransferAmounts']:
-  # Is this the largest allowable data gifting amount so far?
-  if allowedDataTransferAmount['giftingAmountInMB'] > giftingAmountInMB:
-   giftingAmountInMB = allowedDataTransferAmount['giftingAmountInMB']
-   giftingDisplayString = allowedDataTransferAmount['giftingDisplayAmount'] + allowedDataTransferAmount['giftingDisplayUnits']
+    for allowedDataTransferAmount in subscription['allowedDataTransferAmounts']:
+        # Is this the largest allowable data gifting amount so far?
+        if allowedDataTransferAmount['giftingAmountInMB'] > giftingAmountInMB:
+            giftingAmountInMB = allowedDataTransferAmount['giftingAmountInMB']
+            giftingDisplayString = allowedDataTransferAmount['giftingDisplayAmount'] + allowedDataTransferAmount['giftingDisplayUnits']
 
 # Get the history of the family gifting.
 print('* Downloaded data gifting history:')
@@ -53,5 +53,5 @@ print(json.dumps(myEE.familyGiftingHistory(csrf), indent=4))
 
 # Perform the data gifting.
 if giftingAmountInMB > 0:
- print('* Performing data gifting of ' + giftingDisplayString + '.')
- myEE.familyGifting(giftingAmountInMB, credentials['MyEE_DonorMSISDN'], credentials['MyEE_RecipientMSISDN'], csrf)
+    print('* Performing data gifting of ' + giftingDisplayString + '.')
+    myEE.familyGifting(giftingAmountInMB, credentials['MyEE_DonorMSISDN'], credentials['MyEE_RecipientMSISDN'], csrf)
