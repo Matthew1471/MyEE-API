@@ -37,7 +37,7 @@ class MyEE:
             raise ValueError('Failed to login to My EE.')
 
     def extractSettingsJSON(self, content):
-        # We obtain the login form details from the JavaScript of the login form as text.
+        # We obtain the login form details from the JavaScript of the login page as text.
         settingsText = re.search('^var SETTINGS = (?P<Settings>.*?);', content, flags=re.MULTILINE)
 
         # Then we convert it to JSON so it is more accessible.
