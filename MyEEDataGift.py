@@ -32,11 +32,11 @@ for subscription in allowances:
     if subscription['msisdn'] != credentials['MyEE_DonorMSISDN']: continue
 
     # Print out the limits.
-    allowanceText = '  - Can gift up to ' + subscription['amountRemaining']  + ' ' + subscription['amountRemainingUnits'] + ' out of '
+    allowancePrefixText = '  - Can gift up to ' + subscription['amountRemaining']  + ' ' + subscription['amountRemainingUnits'] + ' out of '
     if subscription['isUnlimited']:
-        print(allowanceText + 'the 100/120 GB gifting allowance after ' + subscription['amountUsed'] + ' ' + subscription['amountUsedUnits'] + ' data usage.')
+        print(allowancePrefixText + 'the 100/120 GB gifting allowance after ' + subscription['amountUsed'] + ' ' + subscription['amountUsedUnits'] + ' data usage.')
     else:
-        print(allowanceText + subscription['totalVolume'] + ' ' + subscription['totalVolumeUnits'] + '.')
+        print(allowancePrefixText + subscription['totalVolume'] + ' ' + subscription['totalVolumeUnits'] + '.')
 
     # Work out the maximum amount allowed to data gift.
     giftingDisplayString = ''
