@@ -173,7 +173,6 @@ class MyEE:
 
         # This is the only cookie required for the My EE session.
         if 'MYACCOUNTSESSIONID' in response.cookies:
-
             # The MYACCOUNTSESSIONID has changed.
             self.MYACCOUNTSESSIONID = response.cookies['MYACCOUNTSESSIONID']
 
