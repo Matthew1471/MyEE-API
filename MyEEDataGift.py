@@ -15,15 +15,15 @@ with open('credentials.json', 'r') as in_file:
  credentials = json.load(in_file)
 
 # Create a My EE object.
-print('Logging into My EE.')
+print('* Logging into My EE.')
 myEE = MyEE(credentials['MyEE_Username'], credentials['MyEE_Password'])
 
 # Authenticate with the data gifting page.
-print('Getting data gifting token.')
+print('* Getting data gifting token.')
 csrf = myEE.familyGiftingAuth()
 
 # Get the data gifting allowance.
-print('Checking data gifting allowances.')
+print('* Checking data gifting allowances:')
 allowances = myEE.familyGiftingSubscriptionDataAllowance(csrf)
 
 # Work out how much data can be gifted.
@@ -33,9 +33,9 @@ for subscription in allowances:
 
  # Print out the limits.
  if subscription['isUnlimited']:
-  print('Can gift up to ' + subscription['amountRemaining']  + ' ' + subscription['amountRemainingUnits'] + ' out of the 100/120 GB gifting allowance after ' + subscription['amountUsed'] + ' ' + subscription['amountUsedUnits'] + ' data usage.')
+  print('  - Can gift up to ' + subscription['amountRemaining']  + ' ' + subscription['amountRemainingUnits'] + ' out of the 100/120 GB gifting allowance after ' + subscription['amountUsed'] + ' ' + subscription['amountUsedUnits'] + ' data usage.')
  else:
-  print('Can gift up to ' + subscription['amountRemaining'] + ' ' + subscription['amountRemainingUnits'] + ' out of ' + subscription['totalVolume'] + ' ' + subscription['totalVolumeUnits'] + '.')
+  print('  - Can gift up to ' + subscription['amountRemaining'] + ' ' + subscription['amountRemainingUnits'] + ' out of ' + subscription['totalVolume'] + ' ' + subscription['totalVolumeUnits'] + '.')
 
  # Work out the maximum amount allowed to data gift.
  giftingDisplayString = ''
@@ -48,10 +48,10 @@ for subscription in allowances:
    giftingDisplayString = allowedDataTransferAmount['giftingDisplayAmount'] + allowedDataTransferAmount['giftingDisplayUnits']
 
 # Get the history of the family gifting.
-#print('Downloading data gifting history.')
-#print(myEE.familyGiftingHistory(csrf))
+print('* Downloaded data gifting history:')
+print(json.dumps(myEE.familyGiftingHistory(csrf), indent=4))
 
 # Perform the data gifting.
 if giftingAmountInMB > 0:
- print('Performing data gifting of ' + giftingDisplayString + '.')
+ print('* Performing data gifting of ' + giftingDisplayString + '.')
  myEE.familyGifting(giftingAmountInMB, credentials['MyEE_DonorMSISDN'], credentials['MyEE_RecipientMSISDN'], csrf)
