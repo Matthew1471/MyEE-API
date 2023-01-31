@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-# The login form (now hosted on Azure AD B2C) now relies on JavaScript.
-import re
-import json
+# We set a cookiejar policy.
+import http.cookiejar
 
-# We set a cookie policy.
-from http.cookiejar import DefaultCookiePolicy
+# The login form (now hosted on Azure AD B2C) now relies on JavaScript.
+import json
+import re
 
 # Third party library to make HTTP(S) requests; "pip install requests" if getting import errors.
 import requests
@@ -27,12 +27,12 @@ class MyEE:
     def __init__(self, email, password):
         # Session supports keep-alives but we disable cookie persistence (EE clutters requests with a LOT of cookies).
         self.requestsSession = requests.Session()
-        self.requestsSession.cookies.set_policy(DefaultCookiePolicy(allowed_domains=[]))
+        self.requestsSession.cookies.set_policy(http.cookiejar.DefaultCookiePolicy(allowed_domains=[]))
 
         # We need to be assigned CSRF and state tokens from the login page *before* we can login.
         settingsJSON = self.getSession()
 
-        # Authenticate with MY EE.
+        # Authenticate with My EE.
         if not self.login(settingsJSON, email, password):
             raise ValueError('Failed to login to My EE.')
 
@@ -141,7 +141,7 @@ class MyEE:
         # We should get granted a proper queue token from "MyAccount" when we pass the queue information in the querystring.
         response = self.requestsSession.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, allow_redirects=False)
 
-        # We need to enumerate the cookies to find the one we are interested in (as the cookie key can change).
+        # We need to enumerate the cookies to find the one we are interested in (as the QueueIT cookie key can change).
         for cookie in response.cookies:
 
             # Only interested in the QueueIT token.
