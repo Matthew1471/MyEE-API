@@ -17,6 +17,8 @@ class MyEE:
 
  # My EE Web Application.
  myAccountHost = 'https://myaccount.ee.co.uk'
+ 
+ # The Azure Active Directory B2C server.
  azureB2CHost = 'https://auth.ee.co.uk'
 
  # This prevents the requests module from creating its own user-agent (and ask to not be included in analytics).
