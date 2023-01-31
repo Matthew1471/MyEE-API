@@ -75,26 +75,26 @@ class MyEE:
 
     def getSession(self):
         # First the client requests the My EE login page but gets sent to the API Gateway authorization page.
-        myEELoginResponse = self.requestsSession.get(url='https://id.ee.co.uk/id/login', headers=MyEE.stealthyHeaders, allow_redirects=False)
+        response = self.requestsSession.get(url='https://id.ee.co.uk/id/login', headers=MyEE.stealthyHeaders, allow_redirects=False)
 
         # We get an EE ID Web Session ID.
-        self.EEIDWEBSESSIONID = myEELoginResponse.cookies['EEIDWEBSESSIONID']
+        self.EEIDWEBSESSIONID = response.cookies['EEIDWEBSESSIONID']
 
         # We perform the API Gateway authorize and get bounced to the Azure Active Directory B2C Auth login.
-        authorizeIDResponse = self.requestsSession.get(url=myEELoginResponse.headers['Location'], headers=MyEE.stealthyHeaders, allow_redirects=False)
+        response = self.requestsSession.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, allow_redirects=False)
 
         # Azure Active Directory B2C uses some cookies (https://learn.microsoft.com/en-us/azure/active-directory-b2c/cookie-definitions) which a Session object will automatically persist, also HTTP Keep-Alives will be enabled.
         self.azureADSession = requests.Session()
 
         # Get an Azure Active Directory B2C authorization code (see https://learn.microsoft.com/en-us/azure/active-directory-b2c/authorization-code-flow)
-        loginPage = self.azureADSession.get(url=authorizeIDResponse.headers['Location'], headers=MyEE.stealthyHeaders, allow_redirects=False)
+        response = self.azureADSession.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, allow_redirects=False)
 
         # EE uses this special URL to validate a session.
-        correlationText = re.search('^<!-- CorrelationId: (?P<CorrelationID>.*?) -->', loginPage.text, flags=re.MULTILINE)
+        correlationText = re.search('^<!-- CorrelationId: (?P<CorrelationID>.*?) -->', response.text, flags=re.MULTILINE)
         self.azureADSession.get(url=self.azureB2CHost + '/telemetry?c=' + correlationText.groups('CorrelationID')[0], headers=MyEE.stealthyHeaders, allow_redirects=False)
 
         # Get the latest SETTINGS JSON.
-        return self.extractSettingsJSON(loginPage.text)
+        return self.extractSettingsJSON(response.text)
 
     def login(self, settingsJSON, username, password):
         stealthyHeadersForm = MyEE.stealthyHeaders
