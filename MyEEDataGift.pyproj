@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4f562103-d16f-4930-8b83-a2e1a20fb446</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>MyEEDataGift.py</StartupFile>
+    <StartupFile>MyEEDataUsage.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="MyEEDataUsage.py" />
     <Compile Include="MyEEDataGift.py" />
     <Compile Include="shared\myee.py" />
     <Compile Include="shared\__init__.py" />

@@ -173,7 +173,7 @@ class MyEE:
         response = self.requestsSession.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False)
 
         # The MYACCOUNTSESSIONID has now been set.
-        self.MYACCOUNTSESSIONID = response.cookies['MYACCOUNTSESSIONID']
+        self.MyAccountSessionID = response.cookies['MYACCOUNTSESSIONID']
 
         # API Gateway authorize to "MyAccount".
         response = self.requestsSession.get(url=response.headers['Location'], headers=MyEE.stealthyHeaders, cookies={'OPBS':self.OPBS, 'SID':self.SID}, allow_redirects=False)
@@ -185,12 +185,15 @@ class MyEE:
         callbackURL, _, _ = self.loginToAPIGateway(response.text)
 
         # "MyAccount" Authorize.
-        response = self.requestsSession.get(url=callbackURL, headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID}, allow_redirects=False)
+        response = self.requestsSession.get(url=callbackURL, headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID}, allow_redirects=False)
 
         # This is the only cookie required for the My EE session.
         if 'MYACCOUNTSESSIONID' in response.cookies:
             # The MYACCOUNTSESSIONID has changed.
-            self.MYACCOUNTSESSIONID = response.cookies['MYACCOUNTSESSIONID']
+            self.MyAccountSessionID = response.cookies['MYACCOUNTSESSIONID']
+
+            # This CSRF token is used for a limited number of HTTP POST end-points in "MyAccount".
+            self.MyAccountCSRFToken = response.cookies['X-XSRF-MYACCOUNT-TOKEN']
 
             # Abort early following the redirects to My EE as we only need to be logged in.
             return True
@@ -198,14 +201,46 @@ class MyEE:
             # The session cookie was not found. Login failed.
             return False
 
+    def accountsummary(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/accountsummary', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def addOnsAvailableData(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/add-ons-available-data', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def alerts(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/alerts', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def basic(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/basic', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def cTnPicker(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/ctnpicker', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def dataPassHistory(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/datapass-history', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def extraChargesDetails(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/extra-charges-details', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def extraChargesTotal(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/extra-charges-total', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
     def familyGiftingAuth(self):
         # Need to get the CSRF token.
-        response = self.requestsSession.get(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False)
+        response = self.requestsSession.get(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False)
 
         # We use BeautifulSoup to parse the returned HTML.
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Get a reference to the data gifting form DIV (there is no ID to search for and this URL has actually moved).
+        # Get a reference to the data gifting form (there is no ID to search for and this URL has actually moved).
         giftDataForm = soup.find('form', {'action': '/app/family-gifting?fa=giftData'})
 
         # Get the hidden HTML form CSRF Input value.
@@ -213,19 +248,58 @@ class MyEE:
 
     def familyGiftingHistory(self, csrf):
         # Send the request (with the CSRF token).
-        return self.requestsSession.post(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting?fa=showMoreGiftingHistory', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, data={'csrf':csrf}, allow_redirects=False).json()
+        return self.requestsSession.post(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting?fa=showMoreGiftingHistory', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, data={'csrf':csrf}, allow_redirects=False).json()
 
     def familyGiftingSubscriptionDataAllowance(self, csrf):
         # Send the request (with the CSRF token).
-        return self.requestsSession.post(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting?fa=subscriptionDataAllowance', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, data={'csrf':csrf}, allow_redirects=False).json()
+        return self.requestsSession.post(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting?fa=subscriptionDataAllowance', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, data={'csrf':csrf}, allow_redirects=False).json()
 
     def familyGifting(self, dataTransferMB, supplierCtn, consumerCtn, csrf):
         # Send the request (with the CSRF token).
-        payload = {
-            'supplierCtn':supplierCtn,
-            'consumerCtn':consumerCtn,
-            'dataTransferMB':dataTransferMB,
-            'csrf':csrf
-            }
-        response = self.requestsSession.post(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting?fa=giftData', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, data=payload, allow_redirects=True)
+        response = self.requestsSession.post(url=MyEE.myAccountHost + '/plans-subscriptions/mobile/data-gifting?fa=giftData', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, data={'supplierCtn':supplierCtn, 'consumerCtn':consumerCtn, 'dataTransferMB':dataTransferMB, 'csrf':csrf}, allow_redirects=True)
         return (response.status_code == 200 and ('Data Gifting successful' in response.text))
+
+    def freeDataUsage(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/freedata-usage', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def myAddressPayM(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/my-address-paym', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def otherAllowances(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/other-allowances', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def paymentHistory(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/payment-history', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def planBill(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/plan-bill', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def plansAndDevicesDetails(self, startPos=0, endPos=4):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/plans-and-devices-details?from=' + str(startPos) + '&to=' + str(endPos), headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def roles(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/roles', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def spendCap(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/spendcap', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def switchMSISDN(self, switchMsisdn):
+        # Send the request (with the CSRF token).
+        response = self.requestsSession.post(url=MyEE.myAccountHost + '/app/api/switchmsisdn', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, data={'switchMsisdn':switchMsisdn, 'csrf':self.MyAccountCSRFToken}, allow_redirects=True)
+        return (response.status_code == 200 and ('Switch ctn successfully done.' in response.text))
+
+    def usageData(self, startPos=0, endPos=4):
+        # Send the request (although this API does not appear to list details on which subscription each item is for).
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/usagedata?from=' + str(startPos) + '&to=' + str(endPos), headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MYACCOUNTSESSIONID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()
+
+    def usageDetails(self):
+        # Send the request.
+        return self.requestsSession.get(url=MyEE.myAccountHost + '/app/api/usage-details', headers=MyEE.stealthyHeaders, cookies={'MYACCOUNTSESSIONID':self.MyAccountSessionID, self.QueueITToken.name:self.QueueITToken.value}, allow_redirects=False).json()

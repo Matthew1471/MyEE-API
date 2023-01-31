@@ -64,7 +64,7 @@ for subscription in allowances:
             giftingAmountInMB = allowedDataTransferAmount['giftingAmountInMB']
             giftingDisplayString = allowedDataTransferAmount['giftingDisplayAmount'] + ' ' + allowedDataTransferAmount['giftingDisplayUnits']
 
-# Get the history of the family gifting.
+# (Optional) Get the history of the family gifting.
 print('* Downloaded data gifting history:')
 print(json.dumps(myEE.familyGiftingHistory(csrf), indent=4))
 
