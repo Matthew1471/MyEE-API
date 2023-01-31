@@ -17,7 +17,7 @@ class MyEE:
 
     # My EE Web Application.
     myAccountHost = 'https://myaccount.ee.co.uk'
- 
+
     # The Azure Active Directory B2C server.
     azureB2CHost = 'https://auth.ee.co.uk'
 

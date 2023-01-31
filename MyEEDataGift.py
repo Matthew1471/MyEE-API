@@ -38,10 +38,11 @@ for subscription in allowances:
     else:
         print(allowancePrefixText + subscription['totalVolume'] + ' ' + subscription['totalVolumeUnits'] + '.')
 
-    # Work out the maximum amount allowed to data gift.
-    giftingDisplayString = ''
+    # Variables used to work out the maximum amount allowed to data gift.
     giftingAmountInMB = 0
+    giftingDisplayString = ''
 
+    # Take each amount that can be gifted and work out the maximum amount allowed to data gift.
     for allowedDataTransferAmount in subscription['allowedDataTransferAmounts']:
         # Is this the largest allowable data gifting amount so far?
         if allowedDataTransferAmount['giftingAmountInMB'] > giftingAmountInMB:
