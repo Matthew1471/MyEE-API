@@ -189,7 +189,7 @@ class MyEE:
         # We use BeautifulSoup to parse the returned HTML.
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Get a reference to the data gifting form DIV (there is no ID to search for and this URL is actually old).
+        # Get a reference to the data gifting form DIV (there is no ID to search for and this URL has actually moved).
         giftDataForm = soup.find('form', {'action': '/app/family-gifting?fa=giftData'})
 
         # Get the hidden HTML form CSRF Input value.
