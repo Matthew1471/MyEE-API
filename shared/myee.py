@@ -101,11 +101,11 @@ class MyEE:
   stealthyHeadersForm.update({'X-CSRF-TOKEN' : settingsJSON['csrf']})
 
   # We perform the Azure AD B2C login (Stage #1, https://learn.microsoft.com/en-us/azure/active-directory-b2c/self-asserted-technical-profile) and get a 200 (appears to be an MS bug where tx and csrf is not URL Encoded.. we faithfully replicate this).
-  response = self.azureADSession.post(url=self.azureB2CHost + settingsJSON['hosts']['tenant'] + '/SelfAsserted?tx=' + settingsJSON['transId'] + '&p=' + requests.utils.quote(settingsJSON['hosts']['policy']), headers=stealthyHeadersForm, data={'request_type':'RESPONSE', 'signInName':username, 'password':password}, allow_redirects=False)
+  response = self.azureADSession.post(url=self.azureB2CHost + settingsJSON['hosts']['tenant'] + '/SelfAsserted?tx=' + settingsJSON['transId'] + '&p=' + requests.utils.quote(settingsJSON['hosts']['policy']), headers=stealthyHeadersForm, data={'request_type':'RESPONSE', 'signInName':username}, allow_redirects=False)
   if response.text != '{"status":"200"}': return False
 
   # Then we "confirm" our session.
-  response = self.azureADSession.get(url=self.azureB2CHost + settingsJSON['hosts']['tenant'] + '/api/' + settingsJSON['api'] + '/confirmed?rememberMe=false&csrf_token=' + settingsJSON['csrf'] + '&tx=' + settingsJSON['transId'] + '&p=' + requests.utils.quote(settingsJSON['hosts']['policy']), headers=MyEE.stealthyHeaders, allow_redirects=False)
+  response = self.azureADSession.get(url=self.azureB2CHost + settingsJSON['hosts']['tenant'] + '/api/' + settingsJSON['api'] + '/confirmed?csrf_token=' + settingsJSON['csrf'] + '&tx=' + settingsJSON['transId'] + '&p=' + requests.utils.quote(settingsJSON['hosts']['policy']), headers=MyEE.stealthyHeaders, allow_redirects=False)
 
   # Get the latest updated SETTINGS JSON.
   settingsJSON = self.extractSettingsJSON(response.text)
@@ -118,7 +118,7 @@ class MyEE:
   if response.text != '{"status":"200"}': return False
 
   # Then we "confirm" our session.
-  response = self.azureADSession.get(url=self.azureB2CHost + settingsJSON['hosts']['tenant'] + '/api/' + settingsJSON['api'] + '/confirmed?rememberMe=false&csrf_token=' + settingsJSON['csrf'] + '&tx=' + settingsJSON['transId'] + '&p=' + requests.utils.quote(settingsJSON['hosts']['policy']), headers=MyEE.stealthyHeaders, allow_redirects=False)
+  response = self.azureADSession.get(url=self.azureB2CHost + settingsJSON['hosts']['tenant'] + '/api/' + settingsJSON['api'] + '/confirmed?csrf_token=' + settingsJSON['csrf'] + '&tx=' + settingsJSON['transId'] + '&p=' + requests.utils.quote(settingsJSON['hosts']['policy']), headers=MyEE.stealthyHeaders, allow_redirects=False)
 
   # Now perform an API Gateway login to EE ID.
   callbackURL, self.OPBS, self.SID = self.loginToAPIGateway(response.text)
@@ -126,7 +126,7 @@ class MyEE:
   # We request the EE ID Auth URL and get sent to the EE ID Dashboard.
   response = self.requestsSession.get(url=callbackURL, headers=MyEE.stealthyHeaders, cookies={'EEIDWEBSESSIONID':self.EEIDWEBSESSIONID}, allow_redirects=False)
 
-  # The EEIDWEBSESSIONID has changed.
+  # The EEIDWEBSESSIONID has changed now we are authenticated.
   self.EEIDWEBSESSIONID = response.cookies['EEIDWEBSESSIONID']
 
   # EE ID Dashboard redirects us to "MyAccount".
