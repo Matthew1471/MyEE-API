@@ -195,7 +195,7 @@ class MyEE:
             # This CSRF token is used for a limited number of HTTP POST end-points in "MyAccount".
             self.MyAccountCSRFToken = response.cookies['X-XSRF-MYACCOUNT-TOKEN']
 
-            # Abort early following the redirects to My EE as we only need to be logged in.
+            # Abort following the further redirects to the My EE dashboard as we only want to be logged in.
             return True
         else:
             # The session cookie was not found. Login failed.
